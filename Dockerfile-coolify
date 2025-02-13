@@ -1,34 +1,34 @@
-FROM node:20.18.0
+FROM node:20.18.0 AS base
 
 WORKDIR /app
 
-# Instalar pnpm e wrangler
-RUN corepack enable pnpm && \
+# Install pnpm explicitly (bypassing Corepack)
+RUN npm install -g pnpm@8.6.0 && \
     npm install -g wrangler
 
-# Copiar arquivos de dependências
+# Copy dependency files
 COPY package.json pnpm-lock.yaml ./
 
-# Instalar dependências
-RUN pnpm install
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
-# Copiar código  fonte e scripts
+# Copy source code and scripts
 COPY . .
 
-# Garantir que o bindings.sh tem permissões de execução e formato correto
+# Ensure bindings.sh has correct permissions and LF line endings
 RUN tr -d '\r' < bindings.sh > bindings.tmp && \
     mv bindings.tmp bindings.sh && \
     chmod +x bindings.sh
 
-# Build da aplicação
+# Build the application
 RUN pnpm run build
 
-# Expor porta
+# Expose application port
 EXPOSE 5173
 
-# Configurar variáveis de ambiente
+# Set environment variables
 ENV NODE_ENV=production \
     RUNNING_IN_DOCKER=true
 
-# Comando para iniciar usando o script dockerstart
+# Default command to start the app
 CMD ["pnpm", "run", "dockerstart"]
