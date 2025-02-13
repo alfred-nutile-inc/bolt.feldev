@@ -5,8 +5,9 @@ WORKDIR /app
 # Install pnpm explicitly (bypassing Corepack)
 RUN npm install -g pnpm@8.6.0 && \
     npm install -g wrangler
+# Ensure dependencies are copied before installing
+COPY package.json pnpm-lock.yaml ./
 
-# Copy dependency files
 RUN pnpm install --force
 
 # Copy source code and scripts
